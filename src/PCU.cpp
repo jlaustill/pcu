@@ -1,63 +1,47 @@
 #include "PCU.h"
+#include "TimingSensor.h"
 
 // Static member definitions
-double PCU::setpoint = 0.0;
-double PCU::Kp = 0.0;
-double PCU::Ki = 0.0;
-double PCU::Kd = 0.0;
+float PCU::setpoint = 0.0;
+float PCU::Kp = 2.0;
+float PCU::Ki = 1.0;
+float PCU::Kd = 0.00;
 
-double* PCU::kp_ptr = &PCU::Kp;
-double* PCU::ki_ptr = &PCU::Ki;
-double* PCU::kd_ptr = &PCU::Kd;
+AD7606p16_t4 PCU::adc1(RD_PIN, CS_PIN, CONV_START_PIN, BUSY_PIN, RESET_PIN, 20.0f);
 
-IntervalTimer PCU::mainTimer;
-IntervalTimer PCU::debugTimer;
+uint16_t pwm_duty = 0;
+
 
 void PCU::initialize() {
-    Serial.begin(115200);
-    analogReadResolution(15);
-    analogWriteResolution(15); // 32,768 steps  
-
     // Initialize classes
-    TimingController::initialize();
+    TimingController::initialize(adc1);
     TestingRotary::initialize();
     TestingRotary::setPointers(&setpoint, &Kp, &Ki, &Kd);
-    
-    // Start main process timer (10ms = 10000 microseconds)
-    mainTimer.begin(mainProcess, 10000);
-    Serial.println("Main process timer started (10ms interval)");
-    
-    // Start debug serial timer (50ms = 50000 microseconds)
-    debugTimer.begin(debugSerial, 50000);
-    Serial.println("Debug serial timer started (50ms interval)");
+
+    analogWriteFrequency(TIMING_PWM_PIN, 20000);
+    analogReadResolution(12);
+    analogWrite(TIMING_PWM_PIN, pwm_duty);
     
     Serial.println("PCU initialized - all systems ready");
+    Serial.println("*** CALIBRATION MODE ACTIVE ***");
+    Serial.println("Use rotary0 to control PWM directly and observe raw sensor values");
+    Serial.println("Call PCU::setCalibrationMode(false) to switch to normal PID mode");
 }
 
 // Main process method called every 10ms
 void PCU::mainProcess() {
-    // Update rotary encoders
-    TestingRotary::update();
-    
-    // Set timing based on rotary 0 setpoint
-    TimingController::setTiming(setpoint);
-    
-    // Update timing controller
-    TimingController::update();
+        // Update rotary encoder inputs
+        TestingRotary::update();
+        TimingController::setDemandedTiming(setpoint);
+        TimingController::updatePWM();
 }
 
 // Debug serial method called every 50ms
-void PCU::debugSerial() {
-    double timingDemand = TimingController::getTimingDemand();
-    
-    Serial.print("Target: ");
-    Serial.print(setpoint, 1);
-    Serial.print("% | TimingDemand: ");
-    Serial.print(timingDemand, 1);
-    Serial.print("% | Kp: ");
-    Serial.print(Kp, 2);
-    Serial.print(" | Ki: ");
-    Serial.print(Ki, 3);
-    Serial.print(" | Kd: ");
-    Serial.println(Kd, 3);
+void PCU::debugProcess() {  
+        
+        Serial.print("SetPoint: ");
+        Serial.print(setpoint, 1);
+        Serial.print("% | Sensor: ");
+        Serial.print(TimingController::timingSensorPositionPercentage, 3);
+        Serial.println();
 }

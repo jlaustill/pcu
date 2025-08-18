@@ -1,6 +1,6 @@
 #pragma once
 #include <Arduino.h>
-#include <IntervalTimer.h>
+#include <AD7606p16_t4.h>
 #include "PCUPinMapping.h"
 #include "TimingController.h"
 #include "TestingRotary.h"
@@ -9,28 +9,18 @@ class PCU {
 public:
     static void initialize();
     
-    // Getters for TimingController access
-    static double* getKpPtr() { return kp_ptr; }
-    static double* getKiPtr() { return ki_ptr; }
-    static double* getKdPtr() { return kd_ptr; }
+    // Static methods
+    static void debugProcess();
+    static void mainProcess();
+    
+    static float Kp;             // Proportional gain
+    static float Ki;             // Integral gain 
+    static float Kd;             // Derivative gain
     
 private:
+    // Global variable for ADC Voltages
+    static float adcVoltages[8];
+    static AD7606p16_t4 adc1;
     // Global variables for rotary control
-    static double setpoint;       // Target percentage (0-100%)
-    static double Kp;             // Proportional gain
-    static double Ki;             // Integral gain 
-    static double Kd;             // Derivative gain
-    
-    // Global pointers for TimingController access
-    static double* kp_ptr;
-    static double* ki_ptr;
-    static double* kd_ptr;
-    
-    // Timers
-    static IntervalTimer mainTimer;
-    static IntervalTimer debugTimer;
-    
-    // Static methods
-    static void mainProcess();
-    static void debugSerial();
+    static float setpoint;       // Target percentage (0-100%)
 };

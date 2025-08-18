@@ -1,0 +1,1 @@
+- NEVER make assumptions, ZERO acceptions! If definitive proof isn't available, ask the user for more data!

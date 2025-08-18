@@ -1,13 +1,15 @@
 #pragma once
 
 // Timing motor control pins
-#define TIMING_INA_PIN 2
-#define TIMING_INB_PIN 1
-#define TIMING_PWM_PIN 0
-#define TIMING_EN_PIN 3
+#define TIMING_PWM_PIN 2
 
-// Sensor pins
-#define TIMING_SENSOR_PIN 14
+// // Sensor calibration values
+#define TIMING_SENSOR_MIN 0.01f
+#define TIMING_SENSOR_MAX 9.6f
 
-// I2C interrupt pin for NeoRotary
-#define ROTARY_IRQ_PIN 29
+// Define your pin connections for the AD7606
+#define BUSY_PIN 29
+#define RESET_PIN 5
+#define CONV_START_PIN 33
+#define RD_PIN 3
+#define CS_PIN 4
